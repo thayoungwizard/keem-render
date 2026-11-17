@@ -23,7 +23,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ pr
   if (!base) return NextResponse.json({ error: "Rendering engine is not connected." }, { status: 503 });
 
   const key = process.env.COMFYUI_API_KEY;
-  const headers = key ? { Authorization: `Bearer ${key}` } : {};
+  const headers: Record<string, string> = key ? { Authorization: `Bearer ${key}` } : {};
   const response = await fetch(`${base}/history/${encodeURIComponent(promptId)}`, {
     cache: "no-store",
     headers
