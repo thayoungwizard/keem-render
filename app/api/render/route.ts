@@ -9,7 +9,7 @@ type WorkflowNode = {
   inputs: Record<string, unknown>;
 };
 
-function authHeaders() {
+function authHeaders(): Record<string, string> {
   const key = process.env.COMFYUI_API_KEY;
   return key ? { Authorization: `Bearer ${key}` } : {};
 }
