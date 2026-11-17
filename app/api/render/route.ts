@@ -5,6 +5,10 @@ import path from "node:path";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+type WorkflowNode = {
+  inputs: Record<string, unknown>;
+};
+
 function authHeaders() {
   const key = process.env.COMFYUI_API_KEY;
   return key ? { Authorization: `Bearer ${key}` } : {};
@@ -21,9 +25,9 @@ export async function POST(request: NextRequest) {
 
   const workflowPath = process.env.COMFYUI_WORKFLOW_PATH || "./workflows/sdxl-img2img-api.json";
   const absolutePath = path.isAbsolute(workflowPath) ? workflowPath : path.join(process.cwd(), workflowPath);
-  let workflow: Record<string, any>;
+  let workflow: Record<string, WorkflowNode>;
   try {
-    workflow = JSON.parse(await fs.readFile(absolutePath, "utf8"));
+    workflow = JSON.parse(await fs.readFile(absolutePath, "utf8")) as Record<string, WorkflowNode>;
   } catch {
     return NextResponse.json({ error: "ComfyUI workflow file is missing or invalid. Check COMFYUI_WORKFLOW_PATH." }, { status: 503 });
   }
