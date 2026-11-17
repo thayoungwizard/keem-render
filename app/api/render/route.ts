@@ -57,8 +57,30 @@ export async function POST(request: NextRequest) {
   workflow[samplerId].inputs.denoise = Math.max(0.1, Math.min(1, Number(form.get("denoise") || 0.42)));
   workflow[samplerId].inputs.steps = Math.max(10, Math.min(40, Number(form.get("steps") || 24)));
   workflow[samplerId].inputs.seed = Math.floor(Math.random() * 2 ** 32);
-  workflow[scaleId].inputs.width = Math.max(512, Math.min(1280, Number(form.get("width") || 1024)));
-  workflow[scaleId].inputs.height = Math.max(512, Math.min(1280, Number(form.get("height") || 1024)));
+
+  const requestedWidth = Math.max(512, Math.min(1280, Number(form.get("width") || 1024)));
+  const requestedHeight = Math.max(512, Math.min(1280, Number(form.get("height") || 1024)));
+  const sourceWidth = Number(form.get("sourceWidth"));
+  const sourceHeight = Number(form.get("sourceHeight"));
+  if (!Number.isFinite(sourceWidth) || !Number.isFinite(sourceHeight) ||
+      sourceWidth < 1 || sourceHeight < 1 || sourceWidth > 20000 || sourceHeight > 20000) {
+    return NextResponse.json({ error: "Reference image dimensions are missing or invalid. Please upload the image again." }, { status: 400 });
+  }
+
+  // Fit inside the selected output bounds without stretching or centre-cropping the building.
+  const fitScale = Math.min(requestedWidth / sourceWidth, requestedHeight / sourceHeight);
+  workflow[scaleId].inputs.width = Math.max(64, Math.floor((sourceWidth * fitScale) / 64) * 64);
+  workflow[scaleId].inputs.height = Math.max(64, Math.floor((sourceHeight * fitScale) / 64) * 64);
+
+  const preset = String(form.get("preset") || "Photorealistic");
+  const presetGuidance: Record<string, string> = {
+    "Photorealistic": "photorealistic architectural photography, physically accurate materials, natural light and realistic shadows",
+    "Clay to photo": "convert the clay render into a photorealistic finished architectural photograph, infer restrained realistic materials while preserving every form",
+    "Material study": "architectural material study, clear material definition, realistic surface texture, restrained neutral lighting",
+    "Golden hour": "warm golden-hour architectural photography, low-angle sunlight, long natural shadows, warm realistic reflections"
+  };
+  const style = presetGuidance[preset] || presetGuidance["Photorealistic"];
+  workflow[positiveId].inputs.text = `${String(form.get("prompt") || "")}, ${style}`;
   workflow[saveId].inputs.filename_prefix = `keem-render/${Date.now()}`;
 
   const queued = await fetch(`${base}/prompt`, {
