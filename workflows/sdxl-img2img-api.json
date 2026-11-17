@@ -67,7 +67,7 @@
       "upscale_method": "lanczos",
       "width": 1024,
       "height": 1024,
-      "crop": "center",
+      "crop": "disabled",
       "image": ["2", 0]
     }
   }
