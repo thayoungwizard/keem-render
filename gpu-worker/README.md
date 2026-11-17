@@ -47,10 +47,12 @@ print("Checkpoint ready:", checkpoint)
 !python main.py --listen 127.0.0.1 --port 8188
 ```
 
-Keep that cell running. In a second cell, install the gateway dependencies and copy `gpu-worker/gateway.py` from this repository into the notebook workspace:
+Keep that cell running. In a second cell, clone this project and install the gateway dependencies:
 
 ```bash
+!git clone https://github.com/thayoungwizard/keem-render.git /kaggle/working/keem-render
 !pip install fastapi uvicorn httpx
+%cd /kaggle/working/keem-render/gpu-worker
 ```
 
 Then start the protected gateway (retrieve the token from Kaggle Secrets in Python, never print it):
