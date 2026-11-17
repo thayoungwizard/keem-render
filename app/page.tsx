@@ -66,6 +66,16 @@ export default function Home() {
     form.append("height", String(height));
     form.append("preset", preset);
     try {
+      const dimensions = await createImageBitmap(file);
+      form.append("sourceWidth", String(dimensions.width));
+      form.append("sourceHeight", String(dimensions.height));
+      dimensions.close();
+    } catch {
+      setState("error");
+      setMessage("This image could not be read. Please try another JPG, PNG or WEBP file.");
+      return;
+    }
+    try {
       const response = await fetch("/api/render", { method: "POST", body: form });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Render request failed.");
